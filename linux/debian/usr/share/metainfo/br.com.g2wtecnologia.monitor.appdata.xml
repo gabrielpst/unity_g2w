@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+	<id>br.com.g2wtecnologia.monitor</id>
+	<name>G2W Monitor</name>
+	<!-- <summary>Bluecherry client written in Flutter.</summary> -->
+	<metadata_license>CC0-1.0</metadata_license>
+	<project_license>
+		LicenseRef-proprietary=https://github.com/blueckerrydvr/unity/blob/master/LICENSE</project_license>
+	<recommends>
+		<control>pointing</control>
+		<control>keyboard</control>
+		<control>touch</control>
+	</recommends>
+	<developer_name>G2W Tecnologia</developer_name>
+	<!-- <url type="homepage"></url>
+	<url type="donation"></url>
+	<url type="contact"></url>
+	<description>
+		<p>G2W Monitor - cliente de monitoramento de cameras.</p>
+		<p></p>
+		<p>Current Features</p>
+		<ul>
+			<li></li>
+		</ul>
+		<p></p>
+		<p>Upcoming Features</p>
+		<ul>
+			<li></li>
+		</ul>
+	</description>
+	<screenshots>
+		<screenshot>
+			<image type="source"></image>
+		</screenshot>
+	</screenshots> -->
+	<launchable type="desktop-id">bluecherrydvr.desktop</launchable>
+	<releases>
+		<!-- <release version="VERSION" date="YYYY-MM-DD" />| -->
+		<release version="3.0.0-beta24" date="2026-02-22" />|
+		<release version="3.0.0-beta23" date="2025-04-28" />|
+		<release version="3.0.0-beta22" date="2025-01-19" />|
+		<release version="3.0.0-beta21" date="2024-12-30" />|
+		<release version="3.0.0-beta20" date="2024-11-18" />|
+		<release version="3.0.0-beta19" date="2024-09-09" />|
+		<release version="3.0.0-beta18" date="2024-07-10" />|
+		<release version="3.0.0-beta17" date="2024-06-07" />|
+		<release version="3.0.0-beta16" date="2024-04-15" />|
+		<release version="3.0.0-beta15" date="2024-03-05" />|
+		<release version="3.0.0-beta14" date="2023-12-02" />|
+		<release version="3.0.0-beta13" date="2023-10-27" />|
+		<release version="3.0.0-beta12" date="2023-09-28" />|
+		<release version="3.0.0-beta11" date="2023-09-12" />|
+		<release version="3.0.0-beta10" date="2023-08-14" />
+		<release version="3.0.0-beta9" date="2023-08-13" />
+		<release version="3.0.0-beta8" date="2023-06-29" />
+	</releases>
+	<content_rating type="oars-1.0" />
+	<update_contact>contato@g2wseguranca.com.br</update_contact>
+</component>

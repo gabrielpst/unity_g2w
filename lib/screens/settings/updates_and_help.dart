@@ -516,13 +516,13 @@ class About extends StatelessWidget {
           Row(
             children: [
               Link(
-                uri: Uri.https('bluecherrydvr.com', '/'),
+                uri: Uri.https('monitor.g2wseguranca.com.br', '/'),
                 builder: (context, open) {
                   return TextButton(
                     onPressed: open,
                     child: Text(
                       loc.website,
-                      semanticsLabel: 'www.bluecherrydvr.com',
+                      semanticsLabel: 'monitor.g2wseguranca.com.br',
                       style: TextStyle(color: theme.colorScheme.primary),
                     ),
                   );
@@ -530,13 +530,13 @@ class About extends StatelessWidget {
               ),
               const SizedBox(width: 8.0),
               Link(
-                uri: Uri.https('bluecherrydvr.com', '/contact/'),
+                uri: Uri.https('monitor.g2wseguranca.com.br', '/contato/'),
                 builder: (context, open) {
                   return TextButton(
                     onPressed: open,
                     child: Text(
                       loc.help,
-                      semanticsLabel: 'www.bluecherrydvr.com/contact',
+                      semanticsLabel: 'monitor.g2wseguranca.com.br/contato',
                       style: TextStyle(color: theme.colorScheme.primary),
                     ),
                   );
@@ -547,10 +547,13 @@ class About extends StatelessWidget {
                 onPressed: () {
                   showLicensePage(
                     context: context,
-                    applicationName: 'Bluecherry Client',
+                    applicationName: 'G2W Monitor',
                     applicationIcon: Image.asset('assets/images/icon.png'),
                     applicationVersion: update.packageInfo?.version,
-                    applicationLegalese: '© 2022 Bluecherry, LLC',
+                    applicationLegalese:
+                        '© 2026 G2W Tecnologia\n'
+                        'Versão modificada do Bluecherry Client, © 2022 Bluecherry LLC.\n'
+                        'Licenciado sob GNU GPL v3.',
                   );
                 },
                 child: Text(

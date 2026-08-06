@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+    <channel>
+        <title>G2W Monitor - Appcast</title>
+        <item>
+            <title>Version 1.0.0</title>
+            <description>Primeira versão G2W Monitor: reprodução de gravações com autenticação, decodificação estável e busca na linha do tempo.</description>
+            <pubDate>Wed, 05 Aug 2026</pubDate>
+        </item>
+    </channel>
+</rss>

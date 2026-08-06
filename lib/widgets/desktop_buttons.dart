@@ -198,7 +198,7 @@ class _WindowButtonsState extends State<WindowButtons>
 
             // If it is in another screen, show the title or fallback to "Bluecherry"
             if (tab.index >= UnityTab.values.length) {
-              return widget.title ?? 'Bluecherry';
+              return widget.title ?? 'G2W Monitor';
             }
 
             if (!(isMacOSPlatform || kIsWeb)) {

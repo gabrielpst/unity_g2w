@@ -1,4 +1,4 @@
-name: bluecherry-client
+name: g2w-monitor
 version: '3.0.0'
 summary: Bluecherry DVR Client
 description: |
@@ -9,12 +9,12 @@ confinement: strict
 grade: stable
 
 apps:
-  bluecherry-client:
-    command: bluecherry_client
+  g2w-monitor:
+    command: g2w-monitor
     extensions: [gnome]
 
 parts:
-  bluecherry-client:
+  g2w-monitor:
     source: .
     plugin: flutter
     flutter-target: lib/main.dart

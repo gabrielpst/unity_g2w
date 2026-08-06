@@ -1,7 +1,7 @@
 {
   "@@locale": "pt",
   "welcome": "Bem vindo!",
-  "welcomeDescription": "Seja bem vindo ao Bluecherry Surveillance DVR!\nVamos conectar ao seu servidor DVR em um instante!",
+  "welcomeDescription": "Bem-vindo ao G2W Monitor!\nVamos conectar ao seu servidor rapidamente.",
   "configure": "Configure um Servidor DVR",
   "configureDescription": "Configure uma conexão com seu servidor DVR remoto. Você pode se conectar a quantos servidores quiser de qualquer lugar do mundo.",
   "hostname": "Hostname",
@@ -28,10 +28,10 @@
   "letsGo": "Vamos lá!",
   "finish": "Concluir",
   "letsGoDescription": "Aqui algumas dicas de como começar:",
-  "projectName": "Bluecherry",
-  "projectDescription": "Powerful Video Surveillance Software",
+  "projectName": "G2W Monitor",
+  "projectDescription": "Monitoramento de câmeras da G2W Tecnologia",
   "website": "Website",
-  "purchase": "Compras",
+  "purchase": "Suporte",
   "tip0": "Câmeras são mostradas à esquerda. Você pode dar dois cliques ou arrastar a câmera até a visualização para vê-la.",
   "tip1": "Use os botões acima das câmeras para criar, salvar e alterar layouts - mesmo com câmeras de múltiplos servidores.",
   "tip2": "Dê dois cliques em um servidor para abrir sua página de configuração em uma nova janela, onde você pode configurar câmeras e gravações.",
@@ -53,7 +53,7 @@
       }
     }
   },
-  "serverNotAddedErrorDescription": "Please check the entered details and ensure the server is online.\n\nIf you are connecting remote, make sure the {port} and {rtspPort} ports are open to the Bluecherry server!",
+  "serverNotAddedErrorDescription": "Please check the entered details and ensure the server is online.\n\nIf you are connecting remote, make sure the {port} and {rtspPort} ports are open to the G2W Monitor server!",
   "@serverNotAddedErrorDescription": {
     "placeholders": {
       "port": {
@@ -193,7 +193,7 @@
   "yes": "Sim",
   "no": "Não",
   "about": "Sobre",
-  "versionText": "Copyright © 2022, Bluecherry LLC.\nTodos os direitos reservados.",
+  "versionText": "© 2026 G2W Tecnologia\nVersão modificada do Bluecherry Client, © 2022 Bluecherry LLC.\nLicenciado sob GNU GPL v3.",
   "gettingDevices": "Carregando dispositivos...",
   "noDevices": "Nenhum dispositivo",
   "noEventsLoaded": "NENHUM EVENTO CARREGADO",
@@ -572,10 +572,10 @@
   "convertToLocalTime": "Converter datas para o fuso-horário local",
   "convertToLocalTimeDescription": "Isso afetará a data e a hora exibidas no aplicativo. É útil quando você está em um fuso horário diferente do servidor. Quando desativado, o fuso horário do servidor será usado.",
   "@@PRIVACY_AND_SECURITY": {},
-  "allowDataCollection": "Permitir que Bluecherry colete dados de uso",
-  "allowDataCollectionDescription": "Permitir que Bluecherry colete dados para melhorar o aplicativo e fornecer serviços melhores. Os dados são coletados anonimamente e não contêm informações pessoais.",
+  "allowDataCollection": "Permitir que G2W Monitor colete dados de uso",
+  "allowDataCollectionDescription": "Permitir que G2W Monitor colete dados para melhorar o aplicativo e fornecer serviços melhores. Os dados são coletados anonimamente e não contêm informações pessoais.",
   "automaticallyReportErrors": "Relatar erros automaticamente",
-  "automaticallyReportErrorsDescription": "Enviar automaticamente relatórios de erros para Bluecherry para ajudar a melhorar o aplicativo. Os relatórios de erros podem conter informações pessoais.",
+  "automaticallyReportErrorsDescription": "Enviar automaticamente relatórios de erros para G2W Monitor para ajudar a melhorar o aplicativo. Os relatórios de erros podem conter informações pessoais.",
   "privacyPolicy": "Política de Privacidade",
   "termsOfService": "Termos de Serviço",
   "@@ADVANCED_OPTIONS": {},

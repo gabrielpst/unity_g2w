@@ -106,7 +106,7 @@ class UpdateManager extends UnityProvider {
 
   /// The URL to the appcast file.
   static const appCastUrl =
-      'https://raw.githubusercontent.com/bluecherrydvr/unity/main/bluecherry_appcast.xml';
+      'https://raw.githubusercontent.com/gabrielpst/unity_g2w/main/g2w_appcast.xml';
 
   static Future<UpdateManager> ensureInitialized() async {
     instance = UpdateManager._();
@@ -305,7 +305,7 @@ class UpdateManager extends UnityProvider {
   }
 
   String get downloadMacOSRedirect =>
-      'https://github.com/bluecherrydvr/unity?tab=readme-ov-file#download';
+      'https://github.com/gabrielpst/unity_g2w/releases';
 
   /// Downloads the latest version executable.
   Future<void> download(String version) async {

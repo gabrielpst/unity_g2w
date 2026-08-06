@@ -75,7 +75,7 @@ class AddServerInfoScreen extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         Link(
-                          uri: Uri.https('bluecherrydvr.com', '/'),
+                          uri: Uri.https('monitor.g2wseguranca.com.br', '/'),
                           builder: (context, open) {
                             return TextButton(
                               onPressed: open,
@@ -86,8 +86,8 @@ class AddServerInfoScreen extends StatelessWidget {
                         const SizedBox(width: 8.0),
                         Link(
                           uri: Uri.https(
-                            'bluecherrydvr.com',
-                            '/product/v3license/',
+                            'monitor.g2wseguranca.com.br',
+                            '/suporte',
                           ),
                           builder: (context, open) {
                             return TextButton(

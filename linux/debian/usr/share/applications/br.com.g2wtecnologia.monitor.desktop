@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=G2W Monitor
+Comment=Monitoramento de cameras da G2W Tecnologia
+Icon=g2w-monitor
+Exec=g2w-monitor %f
+StartupWMClass=g2w-monitor
+Terminal=false
+Categories=Player;
+GenericName=G2W Monitor
+Keywords=surveillance;

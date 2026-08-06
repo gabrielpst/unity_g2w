@@ -1,4 +1,4 @@
-Name:       bluecherrydvr
+Name:       g2w-monitor
 Version:    3.0.0_beta24
 Release:    1
 Summary:    Bluecherry client written in Flutter.

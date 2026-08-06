@@ -48,7 +48,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
 
   // "Bluecherry" is the parameter of `window.Create` in this file.
   // You may ignore the result if you need to create another window.
-  if (SendAppLinkToInstance(L"Bluecherry")) {
+  if (SendAppLinkToInstance(L"G2W Monitor")) {
     // If the first argument is "sub_window", we need to create another window.
     std::vector<std::string> command_line_arguments =
       GetCommandLineArguments();
@@ -80,7 +80,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   FlutterWindow window(project);
   Win32Window::Point origin(10, 10);
   Win32Window::Size size(1066, 645);
-  if (!window.Create(L"Bluecherry", origin, size)) {
+  if (!window.Create(L"G2W Monitor", origin, size)) {
     return EXIT_FAILURE;
   }
   window.SetQuitOnClose(true);

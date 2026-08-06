@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.bluecherry" "\0"
-            VALUE "FileDescription", "Bluecherry" "\0"
+            VALUE "CompanyName", "G2W Tecnologia" "\0"
+            VALUE "FileDescription", "G2W Monitor" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "Bluecherry" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2023 com. All rights reserved." "\0"
-            VALUE "OriginalFilename", "bluecherry_client.exe" "\0"
-            VALUE "ProductName", "Bluecherry Client" "\0"
+            VALUE "InternalName", "G2W Monitor" "\0"
+            VALUE "LegalCopyright", "(C) 2026 G2W Tecnologia. Versao modificada do Bluecherry Client (C) 2022 Bluecherry LLC. GPL v3." "\0"
+            VALUE "OriginalFilename", "g2w-monitor.exe" "\0"
+            VALUE "ProductName", "G2W Monitor" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

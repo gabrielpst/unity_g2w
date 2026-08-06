@@ -1,10 +1,17 @@
-Package: bluecherrydvr
-Version: 3.0.0-beta24
-Section: base
+Package: g2w-monitor
+Version: 1.0.1
+Section: video
 Priority: optional
-Homepage: https://www.bluecherrydvr.com/
 Architecture: amd64
-Maintainer: Bluecherry DVR  <support@bluecherrydvr.com>
+Maintainer: G2W Tecnologia <contato@g2wseguranca.com.br>
+Homepage: https://monitor.g2wseguranca.com.br
 Build-Depends: libsecret-1-dev, libjsoncpp-dev
-Depends: libsecret-1-0
-Description: Bluecherry client written in Flutter.
+Depends: libsecret-1-0, libmpv2
+Conflicts: bluecherrydvr
+Replaces: bluecherrydvr
+Description: G2W Monitor - cliente de monitoramento de cameras
+ Acompanhe cameras de seguranca ao vivo e reveja gravacoes, com linha do
+ tempo por camera, exportacao de trechos e suporte a H.265.
+ .
+ Versao modificada do Bluecherry Client (GPL v3), mantida pela
+ G2W Tecnologia.

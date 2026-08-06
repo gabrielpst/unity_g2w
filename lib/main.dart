@@ -63,6 +63,7 @@ import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:unity_video_player/unity_video_player.dart';
+import 'package:unity_video_player_main/unity_video_player_main.dart';
 import 'package:window_manager/window_manager.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
@@ -94,6 +95,12 @@ Future<void> main(List<String> args) async {
           runApp(const SplashScreen());
         }
 
+        // Force the media_kit (libmpv) backend on desktop: the fvp/video_player
+        // fallback ignores the HTTP auth headers the app passes, which breaks
+        // playback against any server that requires authentication.
+        if (!kIsWeb && (Platform.isLinux || Platform.isWindows || Platform.isMacOS)) {
+          UnityVideoPlayerMediaKitInterface.registerWith();
+        }
         DevHttpOverrides.configureCertificates();
         API.initialize();
         await UnityVideoPlayerInterface.instance.initialize({

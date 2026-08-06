@@ -19,6 +19,7 @@
 
 import 'package:bluecherry_client/l10n/generated/app_localizations.dart';
 import 'package:bluecherry_client/models/server.dart';
+import 'package:bluecherry_client/utils/logging.dart';
 import 'package:bluecherry_client/providers/server_provider.dart';
 import 'package:bluecherry_client/utils/date.dart';
 import 'package:bluecherry_client/utils/extensions.dart';
@@ -207,17 +208,29 @@ class Event {
   }
 
   String get mediaPath {
-    return '${mediaURL!.scheme}://'
-        '${Uri.encodeComponent(server.login)}'
-        ':'
-        '${Uri.encodeComponent(server.password)}'
-        '@'
+    // Only embed credentials when both are present: an empty pair produces a
+    // malformed "scheme://:@host" URL that the native player rejects outright.
+    final hasCredentials = server.login.isNotEmpty && server.password.isNotEmpty;
+    final credentials = hasCredentials
+        ? '${Uri.encodeComponent(server.login)}'
+              ':'
+              '${Uri.encodeComponent(server.password)}'
+              '@'
+        : '';
+    final result =
+        '${mediaURL!.scheme}://'
+        '$credentials'
         '${mediaURL!.host}'
         ':'
         '${mediaURL!.port}'
         '${mediaURL!.path}'
         '?'
         '${mediaURL!.query}';
+    writeLogToFile(
+      'mediaPath(event $id): credentials=$hasCredentials '
+      'login="${server.login}" url=${result.replaceAll(Uri.encodeComponent(server.password), '***')}',
+    );
+    return result;
   }
 
   Event copyWith({

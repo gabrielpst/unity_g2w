@@ -180,6 +180,23 @@ class UnityVideoPlayerMediaKit extends UnityVideoPlayer {
 
     // Check type. Only true for libmpv based platforms. Currently Windows & Linux.
     if (!kIsWeb && platform is NativePlayer) {
+      // Disable hardware decoding: mpv otherwise probes vulkan/cuda, fails on
+      // most CCTV workstations and falls back to a broken path that produces
+      // washed out frames and "Error parsing NAL unit" spam.
+      (platform as NativePlayer)
+        // Linux GPU stacks probe vulkan/cuda and fall back badly; Windows uses
+        // d3d11 successfully, so hardware decoding stays on there.
+        ..setProperty('hwdec', Platform.isLinux ? 'no' : 'auto-safe')
+        // mpv fails to create its on-disk cache ("Failed to create file cache")
+        // when no writable cache-dir is configured, which breaks seeking on the
+        // recording endpoint even though the server serves byte ranges.
+        ..setProperty('cache', 'yes')
+        ..setProperty('cache-dir', Directory.systemTemp.createTempSync('mpv_cache_').path)
+        ..setProperty('demuxer-max-bytes', '64MiB')
+        ..setProperty('demuxer-max-back-bytes', '32MiB')
+        // Recordings are full range (yuvj420p / color_range=pc). Emitting
+        // limited-range RGB washes them out - blacks come out grey.
+        ..setProperty('video-output-levels', 'full');
       platform
         ..observeProperty('estimated-vf-fps', (fps) async {
           _fps = double.parse(fps);

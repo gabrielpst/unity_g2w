@@ -3,7 +3,7 @@ description: Bluecherry client written in Flutter.
 
 publish_to: "none"
 
-version: 3.0.0-beta24
+version: 1.0.0+13
 
 environment:
   sdk: ">=3.7.0 <4.0.0"
@@ -13,6 +13,8 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
+  unity_video_player_main:
+    path: packages/unity_video_player/unity_video_player_main/
   unity_video_player:
     path: packages/unity_video_player/unity_video_player/
 

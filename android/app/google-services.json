@@ -1,44 +1,26 @@
 {
   "project_info": {
-    "project_number": "566924157760",
-    "project_id": "bluecherry-dvr",
-    "storage_bucket": "bluecherry-dvr.appspot.com"
+    "project_number": "574688111119",
+    "project_id": "g2wtecnologia-monitor",
+    "storage_bucket": "g2wtecnologia-monitor.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:566924157760:android:823c30ce3f3d6a4d15d0a5",
+        "mobilesdk_app_id": "1:574688111119:android:cb486749ac5e6fa625117a",
         "android_client_info": {
-          "package_name": "com.bluecherrydvr"
+          "package_name": "br.com.g2wseguranca.monitor"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "566924157760-9qarhvcpgcd5gtqn40seeouu5qb7prj2.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.bluecherrydvr",
-            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
-          }
-        },
-        {
-          "client_id": "566924157760-jqg9tcd8hlfaidu842m26c5nf7p53nud.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBLw0MR-tHFO2XjkGazNB5u29x0rfrn4QY"
+          "current_key": "AIzaSyDaTgm_3pcUoY2SZNASA1oCUIEOihld4FQ"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "566924157760-jqg9tcd8hlfaidu842m26c5nf7p53nud.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     }

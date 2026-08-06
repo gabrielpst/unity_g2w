@@ -41,7 +41,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.bluecherrydvr"
+        applicationId "br.com.g2wseguranca.monitor"
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-build-configuration.
         minSdkVersion flutter.minSdkVersion
@@ -57,7 +57,7 @@ android {
             signingConfig signingConfigs.debug
         }
     }
-    namespace 'com.bluecherrydvr'
+    namespace 'br.com.g2wseguranca.monitor'
 }
 
 flutter {

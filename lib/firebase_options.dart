@@ -50,13 +50,11 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyBLw0MR-tHFO2XjkGazNB5u29x0rfrn4QY',
-    appId: '1:566924157760:android:823c30ce3f3d6a4d15d0a5',
-    messagingSenderId: '566924157760',
-    projectId: 'bluecherry-dvr',
-    storageBucket: 'bluecherry-dvr.appspot.com',
-    androidClientId:
-        '566924157760-9qarhvcpgcd5gtqn40seeouu5qb7prj2.apps.googleusercontent.com',
+    apiKey: 'AIzaSyDaTgm_3pcUoY2SZNASA1oCUIEOihld4FQ',
+    appId: '1:574688111119:android:cb486749ac5e6fa625117a',
+    messagingSenderId: '574688111119',
+    projectId: 'g2wtecnologia-monitor',
+    storageBucket: 'g2wtecnologia-monitor.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(

@@ -14,8 +14,6 @@ dependencies:
     sdk: flutter
   unity_video_player_main:
     path: ../unity_video_player_main
-  unity_video_player_flutter:
-    path: ../unity_video_player_flutter
   # unity_video_player_fvp:
   #   path: ../unity_video_player_fvp
 
@@ -32,10 +30,10 @@ flutter:
       ios:
         default_package: unity_video_player_main
       macos:
-        default_package: unity_video_player_flutter
+        default_package: unity_video_player_main
       linux:
-        default_package: unity_video_player_flutter
+        default_package: unity_video_player_main
       windows:
-        default_package: unity_video_player_flutter
+        default_package: unity_video_player_main
       web:
         default_package: unity_video_player_main

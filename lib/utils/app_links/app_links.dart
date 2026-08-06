@@ -26,9 +26,7 @@ import 'package:bluecherry_client/providers/settings_provider.dart';
 import 'package:bluecherry_client/utils/extensions.dart';
 import 'package:flutter/material.dart';
 // Video Player Options
-import 'package:unity_video_player/unity_video_player.dart';
 // ignore: depend_on_referenced_packages
-import 'package:unity_video_player_flutter/unity_video_player_flutter.dart';
 
 export 'app_links_stub.dart' if (dart.library.ffi) 'app_links_real.dart';
 
@@ -149,12 +147,8 @@ Future<void> handleArgs(
     final cycle = results.flag('cycle');
     settings.kLayoutCycleEnabled.value = cycle;
   }
-  if (results.wasParsed('mdk')) {
-    final mdk = results.flag('mdk');
-    if (mdk) {
-      UnityVideoPlayerInterface.instance = UnityVideoPlayerFlutterInterface();
-    }
-  }
+  // The fvp/mdk backend was dropped: it ignores the HTTP auth headers the app
+  // passes to the player. The flag is kept for compatibility but does nothing.
 
   await onSplashScreen(isFullscreen);
 

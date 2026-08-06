@@ -183,7 +183,10 @@ class UnityVideoPlayerMediaKit extends UnityVideoPlayer {
       // Disable hardware decoding: mpv otherwise probes vulkan/cuda, fails on
       // most CCTV workstations and falls back to a broken path that produces
       // washed out frames and "Error parsing NAL unit" spam.
-      (platform as NativePlayer)
+      // Dispatched dynamically: NativePlayer only exposes setProperty on the
+      // native backends, and dart2js still type-checks this branch even though
+      // the !kIsWeb guard keeps it from ever running on the web.
+      (platform as dynamic)
         // Linux GPU stacks probe vulkan/cuda and fall back badly; Windows uses
         // d3d11 successfully, so hardware decoding stays on there.
         ..setProperty('hwdec', Platform.isLinux ? 'no' : 'auto-safe')

@@ -274,10 +274,9 @@ class HomeProvider extends ChangeNotifier {
       switch (tab) {
         case UnityTab.deviceGrid:
           setDefaultStatusBarStyle();
-          DeviceOrientations.instance.set([
-            DeviceOrientation.landscapeLeft,
-            DeviceOrientation.landscapeRight,
-          ]);
+          // Follow the phone's own orientation on the grid: only the fullscreen
+          // players lock to landscape, which is where it actually helps.
+          DeviceOrientations.instance.set([]);
           break;
         default:
           setDefaultStatusBarStyle();

@@ -379,17 +379,40 @@ class Timeline extends ChangeNotifier {
     }
     notifyListeners();
 
-    forEachEvent((tile, event) async {
-      if (!event.isPlaying(currentDate)) return;
-      final eventIndex = tile.events.indexOf(event);
-      await tile.videoController.jumpToIndex(eventIndex);
+    // forEachEvent takes a *synchronous* callback, so an async closure passed to
+    // it has its Future dropped: every overlapping event used to race on the same
+    // videoController, and two concurrent jumpToIndex calls disposed the same
+    // native player twice ("Callback invoked after it has been deleted").
+    // Seeks are therefore serialized, and only the newest one is kept queued.
+    if (_seekScheduled) return;
+    _seekScheduled = true;
+    _seekChain = _seekChain.then((_) => _applySeek()).catchError((
+      Object error,
+      StackTrace stackTrace,
+    ) {
+      debugPrint('Seek failed: $error');
+    });
+  }
+
+  Future<void> _seekChain = Future.value();
+  bool _seekScheduled = false;
+
+  Future<void> _applySeek() async {
+    _seekScheduled = false;
+    for (final tile in tiles) {
+      // A tile owns a single player, so at most one of its events can be shown.
+      final index = tile.events.indexWhere((e) => e.isPlaying(currentDate));
+      if (index == -1) continue;
+
+      final event = tile.events[index];
+      await tile.videoController.jumpToIndex(index);
 
       final position = event.position(currentDate);
-      tile.videoController.seekTo(position);
-      if (!isPlaying) tile.videoController.pause();
+      await tile.videoController.seekTo(position);
+      if (!isPlaying) await tile.videoController.pause();
 
       debugPrint('Seeking ${tile.device} to $position');
-    });
+    }
   }
 
   /// Seeks forward by [duration]

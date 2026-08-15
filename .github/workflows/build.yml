@@ -42,21 +42,20 @@ jobs:
         with:
           channel: "stable"
           # cache: true
-      # TODO: Signing Android application.
-      # - name: Create Key Store
-      #   id: create_key_store
-      #   uses: timheuer/base64-to-file@v1
-      #   with:
-      #     fileName: "keystore.pfx"
-      #     encodedString: ${{ secrets.KEY_STORE }}
-      # - name: Create Key Properties
-      #   id: create_key_properties
-      #   uses: timheuer/base64-to-file@v1
-      #   with:
-      #     fileName: "key.properties"
-      #     encodedString: ${{ secrets.KEY_PROPERTIES }}
-      # - run: cp "${{ steps.create_key_store.outputs.filePath }}" android/app/keystore.jks
-      # - run: cp "${{ steps.create_key_properties.outputs.filePath }}" android/key.properties
+      # Decode the release keystore/key.properties from repo secrets (see
+      # android/README-signing.md). Skipped on PRs from forks, where
+      # secrets aren't exposed — the build then falls back to the debug
+      # key, same as any machine without android/key.properties.
+      - name: Create Key Store
+        if: ${{ secrets.KEY_STORE != '' }}
+        run: echo "$KEY_STORE" | base64 -d > android/app/keystore.jks
+        env:
+          KEY_STORE: ${{ secrets.KEY_STORE }}
+      - name: Create Key Properties
+        if: ${{ secrets.KEY_PROPERTIES != '' }}
+        run: echo "$KEY_PROPERTIES" | base64 -d > android/key.properties
+        env:
+          KEY_PROPERTIES: ${{ secrets.KEY_PROPERTIES }}
       - run: flutter gen-l10n
       - run: flutter pub get
       - run: flutter build apk --verbose --split-per-abi --build-number=${{ env.BUILD_NUMBER }} ${{ env.BUILD_NAME && format('--build-name={0}', env.BUILD_NAME) }}

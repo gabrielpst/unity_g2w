@@ -64,6 +64,20 @@ jobs:
       - run: cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk g2w-monitor-android-arm64-v8a-release.apk
       - run: cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk g2w-monitor-android-armeabi-v7a-release.apk
       - run: cp build/app/outputs/flutter-apk/app-x86_64-release.apk g2w-monitor-android-x86_64-release.apk
+      # Manual/workflow_dispatch runs (e.g. testing the locked-server-build
+      # variant) don't match either "Release" step's condition below, so the
+      # APKs would otherwise vanish with the runner. Upload them as a normal
+      # workflow artifact too — doesn't touch the GitHub Release flow at all.
+      - name: Upload APKs as workflow artifact
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: g2w-monitor-android-apks
+          path: |
+            g2w-monitor-android-arm64-v8a-release.apk
+            g2w-monitor-android-armeabi-v7a-release.apk
+            g2w-monitor-android-x86_64-release.apk
+          retention-days: 7
       - name: Release
         # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-using-contexts
         if: ${{ github.event_name == 'push' }}

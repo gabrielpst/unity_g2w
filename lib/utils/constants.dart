@@ -33,6 +33,21 @@ const kDefaultUsername = 'Admin';
 /// Default password used in Bluecherry DVR server.
 const kDefaultPassword = 'bluecherry';
 
+/// Build variant: when true, the app ships with a single server hard-coded
+/// (see [kLockedServerHost] etc.) and never lets the user add, edit, or
+/// remove servers. Only the username/password fields are shown at login,
+/// and the server management UI is hidden throughout Settings.
+///
+/// This flag is meant to be flipped for a dedicated build (branch
+/// `locked-server-build`) — the regular/published app must keep this false.
+const kLockedServerMode = true;
+
+/// Fixed server info used when [kLockedServerMode] is true.
+const kLockedServerName = 'G2W Monitor';
+const kLockedServerHost = 'camerassilvestre4.g2wtecnologia.net';
+const kLockedServerPort = kDefaultPort;
+const kLockedServerRtspPort = kDefaultRTSPPort;
+
 // Keys used for storing data.
 const kStorageServers = 'servers';
 const kStorageMobileView = 'mobile_view';

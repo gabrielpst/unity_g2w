@@ -23,6 +23,7 @@ import 'package:bluecherry_client/screens/servers/add_server_info.dart';
 import 'package:bluecherry_client/screens/servers/additional_server_settings.dart';
 import 'package:bluecherry_client/screens/servers/configure_dvr_server.dart';
 import 'package:bluecherry_client/screens/servers/finish.dart';
+import 'package:bluecherry_client/utils/constants.dart';
 import 'package:bluecherry_client/widgets/drawer_button.dart';
 import 'package:bluecherry_client/widgets/squared_icon_button.dart';
 import 'package:flutter/material.dart';
@@ -83,8 +84,14 @@ class AddServerWizard extends StatefulWidget {
 class _AddServerWizardState extends State<AddServerWizard> {
   Server? server;
   final controller = PageController(
+    // Locked builds (kLockedServerMode, see utils/constants.dart) go
+    // straight to the login page — the server is already fixed, there is
+    // nothing to configure on the welcome page.
     initialPage:
-        HomeProvider.instance.automaticallyGoToAddServersScreen ? 1 : 0,
+        kLockedServerMode ||
+                HomeProvider.instance.automaticallyGoToAddServersScreen
+            ? 1
+            : 0,
   );
 
   @override

@@ -41,7 +41,11 @@ android {
     }
 
     defaultConfig {
-        applicationId "br.com.g2wseguranca.monitor"
+        // Locked-server build variant (branch locked-server-build): distinct
+        // applicationId so it installs side by side with the eventual Play
+        // Store release (br.com.g2wseguranca.monitor) instead of colliding
+        // with it. Revert to the id above if/when this variant merges back.
+        applicationId "br.com.g2wseguranca.monitor.locked"
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-build-configuration.
         minSdkVersion flutter.minSdkVersion
@@ -57,7 +61,7 @@ android {
             signingConfig signingConfigs.debug
         }
     }
-    namespace 'br.com.g2wseguranca.monitor'
+    namespace 'br.com.g2wseguranca.monitor.locked'
 }
 
 flutter {

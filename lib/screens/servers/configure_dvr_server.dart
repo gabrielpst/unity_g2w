@@ -49,10 +49,18 @@ class ConfigureDVRServerScreen extends StatefulWidget {
 }
 
 class _ConfigureDVRServerScreenState extends State<ConfigureDVRServerScreen> {
-  final hostnameController = TextEditingController();
-  final portController = TextEditingController(text: '$kDefaultPort');
-  final rtspPortController = TextEditingController(text: '$kDefaultRTSPPort');
-  final nameController = TextEditingController();
+  final hostnameController = TextEditingController(
+    text: kLockedServerMode ? kLockedServerHost : null,
+  );
+  final portController = TextEditingController(
+    text: kLockedServerMode ? '$kLockedServerPort' : '$kDefaultPort',
+  );
+  final rtspPortController = TextEditingController(
+    text: kLockedServerMode ? '$kLockedServerRtspPort' : '$kDefaultRTSPPort',
+  );
+  final nameController = TextEditingController(
+    text: kLockedServerMode ? kLockedServerName : null,
+  );
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
 
@@ -270,44 +278,57 @@ class _ConfigureDVRServerScreenState extends State<ConfigureDVRServerScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       buildCardAppBar(
-                        title: loc.configure,
-                        description: loc.configureDescription,
+                        // Locked builds skip server setup entirely, so the
+                        // copy here is hardcoded instead of pulled from
+                        // l10n (avoids touching the generated .arb files
+                        // for a client-specific build variant).
+                        title: kLockedServerMode ? 'Entrar' : loc.configure,
+                        description:
+                            kLockedServerMode
+                                ? 'Informe seu usuário e senha para acessar'
+                                : loc.configureDescription,
                         onBack: widget.onBack,
                       ),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            flex: 5,
-                            child: FocusTraversalOrder(
-                              order: const NumericFocusOrder(0),
-                              child: hostnameField,
+                      // Locked builds ship with the server already
+                      // configured (see kLockedServerMode in constants.dart)
+                      // — hostname/port/RTSP port/name are fixed and never
+                      // shown or editable here.
+                      if (!kLockedServerMode) ...[
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              flex: 5,
+                              child: FocusTraversalOrder(
+                                order: const NumericFocusOrder(0),
+                                child: hostnameField,
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 16.0),
-                          Expanded(
-                            flex: 2,
-                            child: FocusTraversalOrder(
-                              order: const NumericFocusOrder(1),
-                              child: portField,
+                            const SizedBox(width: 16.0),
+                            Expanded(
+                              flex: 2,
+                              child: FocusTraversalOrder(
+                                order: const NumericFocusOrder(1),
+                                child: portField,
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 16.0),
-                          Expanded(
-                            flex: 2,
-                            child: FocusTraversalOrder(
-                              order: const NumericFocusOrder(2),
-                              child: rtspPortField,
+                            const SizedBox(width: 16.0),
+                            Expanded(
+                              flex: 2,
+                              child: FocusTraversalOrder(
+                                order: const NumericFocusOrder(2),
+                                child: rtspPortField,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16.0),
-                      FocusTraversalOrder(
-                        order: const NumericFocusOrder(3),
-                        child: nameField,
-                      ),
-                      const SizedBox(height: 16.0),
+                          ],
+                        ),
+                        const SizedBox(height: 16.0),
+                        FocusTraversalOrder(
+                          order: const NumericFocusOrder(3),
+                          child: nameField,
+                        ),
+                        const SizedBox(height: 16.0),
+                      ],
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -374,22 +395,28 @@ class _ConfigureDVRServerScreenState extends State<ConfigureDVRServerScreen> {
                                 }),
                               ),
                             ],
-                            FocusTraversalOrder(
-                              order: const NumericFocusOrder(8),
-                              child: MaterialButton(
-                                onPressed:
-                                    disableFinishButton
-                                        ? null
-                                        : () {
-                                          widget.onNext();
-                                        },
-                                child: Padding(
-                                  padding: const EdgeInsetsDirectional.all(8.0),
-                                  child: Text(loc.skip.toUpperCase()),
+                            // Locked builds must not let the user skip past
+                            // login without credentials.
+                            if (!kLockedServerMode) ...[
+                              FocusTraversalOrder(
+                                order: const NumericFocusOrder(8),
+                                child: MaterialButton(
+                                  onPressed:
+                                      disableFinishButton
+                                          ? null
+                                          : () {
+                                            widget.onNext();
+                                          },
+                                  child: Padding(
+                                    padding: const EdgeInsetsDirectional.all(
+                                      8.0,
+                                    ),
+                                    child: Text(loc.skip.toUpperCase()),
+                                  ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(width: 6.0),
+                              const SizedBox(width: 6.0),
+                            ],
                             FocusTraversalOrder(
                               order: const NumericFocusOrder(7),
                               child: FilledButton(

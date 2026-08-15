@@ -39,6 +39,31 @@ class ServersList extends StatelessWidget {
 
     final canReorder = serversProvider.servers.length > 1;
 
+    // Locked builds (kLockedServerMode, see utils/constants.dart) ship with
+    // a single fixed server and must not expose add/edit/remove/reorder —
+    // show a plain read-only row instead of the normal management list.
+    if (kLockedServerMode) {
+      return Column(
+        children:
+            serversProvider.servers.map((server) {
+              return ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: Colors.transparent,
+                  foregroundColor:
+                      server.online
+                          ? theme.iconTheme.color
+                          : theme.colorScheme.error,
+                  child: ServerStatusIcon(server: server, isLoading: false),
+                ),
+                title: Text(server.name, overflow: TextOverflow.ellipsis),
+                subtitle: Text(
+                  server.online ? loc.nDevices(server.devices.length) : loc.offline,
+                ),
+              );
+            }).toList(),
+      );
+    }
+
     return LayoutBuilder(
       builder: (context, consts) {
         if (consts.maxWidth >= kMobileBreakpoint.width) {

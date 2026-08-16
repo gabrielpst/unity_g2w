@@ -23,6 +23,18 @@ if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
 
+// Release signing (see android/key.properties, gitignored — never committed).
+// keystorePropertiesFile.exists() is false on machines that haven't set this
+// up (e.g. CI without the secret decoded yet), so the release build type
+// below falls back to the debug key rather than failing outright.
+def keystorePropertiesFile = rootProject.file('key.properties')
+def keystoreProperties = new Properties()
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.withReader('UTF-8') { reader ->
+        keystoreProperties.load(reader)
+    }
+}
+
 android {
     compileSdkVersion 35
     ndkVersion flutter.ndkVersion
@@ -45,16 +57,32 @@ android {
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-build-configuration.
         minSdkVersion flutter.minSdkVersion
-        targetSdkVersion 33
+        // Bumped 33->35 to match compileSdkVersion and Google Play's target
+        // API level requirement for new app submissions (policy requires
+        // targeting within ~1 year of the latest Android release).
+        targetSdkVersion 35
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }
 
+    signingConfigs {
+        release {
+            if (keystorePropertiesFile.exists()) {
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+                storeFile keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
+                storePassword keystoreProperties['storePassword']
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig signingConfigs.debug
+            // Uses the real release key when android/key.properties is
+            // present (see android/README-signing.md); falls back to the
+            // debug key otherwise so `flutter run --release` still works
+            // for anyone without the G2W keystore.
+            signingConfig keystorePropertiesFile.exists() ? signingConfigs.release : signingConfigs.debug
         }
     }
     namespace 'br.com.g2wseguranca.monitor'

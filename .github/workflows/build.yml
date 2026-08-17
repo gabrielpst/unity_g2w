@@ -42,21 +42,24 @@ jobs:
         with:
           channel: "stable"
           # cache: true
-      # TODO: Signing Android application.
-      # - name: Create Key Store
-      #   id: create_key_store
-      #   uses: timheuer/base64-to-file@v1
-      #   with:
-      #     fileName: "keystore.pfx"
-      #     encodedString: ${{ secrets.KEY_STORE }}
-      # - name: Create Key Properties
-      #   id: create_key_properties
-      #   uses: timheuer/base64-to-file@v1
-      #   with:
-      #     fileName: "key.properties"
-      #     encodedString: ${{ secrets.KEY_PROPERTIES }}
-      # - run: cp "${{ steps.create_key_store.outputs.filePath }}" android/app/keystore.jks
-      # - run: cp "${{ steps.create_key_properties.outputs.filePath }}" android/key.properties
+      # `secrets` isn't a valid context in `if:` (GitHub Actions
+      # restriction) — guard in shell instead. Skipped on PRs from forks
+      # (no secret access there), where build.gradle falls back to the
+      # debug key as long as android/key.properties doesn't exist at all.
+      - name: Create Key Store
+        run: |
+          if [ -n "$KEY_STORE" ]; then
+            echo "$KEY_STORE" | base64 -d > android/app/keystore.jks
+          fi
+        env:
+          KEY_STORE: ${{ secrets.KEY_STORE }}
+      - name: Create Key Properties
+        run: |
+          if [ -n "$KEY_PROPERTIES" ]; then
+            echo "$KEY_PROPERTIES" | base64 -d > android/key.properties
+          fi
+        env:
+          KEY_PROPERTIES: ${{ secrets.KEY_PROPERTIES }}
       - run: flutter gen-l10n
       - run: flutter pub get
       - run: flutter build apk --verbose --split-per-abi --build-number=${{ env.BUILD_NUMBER }} ${{ env.BUILD_NAME && format('--build-name={0}', env.BUILD_NAME) }}

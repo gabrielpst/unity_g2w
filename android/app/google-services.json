@@ -26,9 +26,9 @@
     },
     {
       "client_info": {
-        "mobilesdk_app_id": "1:574688111119:android:f4bb673efa5e389d25117a",
+        "mobilesdk_app_id": "1:574688111119:android:ba448dc722062f2a25117a",
         "android_client_info": {
-          "package_name": "br.com.g2wseguranca.monitor.locked"
+          "package_name": "br.com.g2wseguranca.monitor.silvestre4"
         }
       },
       "oauth_client": [],

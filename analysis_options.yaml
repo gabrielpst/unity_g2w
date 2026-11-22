@@ -1,4 +1,10 @@
 include: package:flutter_lints/flutter.yaml
 
+analyzer:
+  exclude:
+    # Old fvp/video_player backend. Its dependencies were removed from the
+    # app (it ignored the HTTP auth headers) and nothing imports it anymore.
+    - packages/unity_video_player/unity_video_player_flutter/**
+
 linter:
   rules:

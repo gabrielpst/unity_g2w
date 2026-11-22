@@ -12,6 +12,12 @@ on:
 permissions:
   contents: write
 
+# One Flutter version for every job. With `channel: stable` alone each run
+# took whatever was current that day and builds broke without any change in
+# the code. Raise it on purpose, together with a test build.
+env:
+  FLUTTER_VERSION: "3.44.8"
+
 jobs:
   build_android:
     name: G2W Monitor Android
@@ -41,6 +47,7 @@ jobs:
       - uses: subosito/flutter-action@v2.8.0
         with:
           channel: "stable"
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           # cache: true
       # Decode the release keystore/key.properties from repo secrets (see
       # android/README-signing.md). Skipped on PRs from forks, where
@@ -130,6 +137,7 @@ jobs:
       - uses: subosito/flutter-action@v2.8.0
         with:
           channel: "stable"
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           architecture: x64
           # cache: true
 
@@ -232,6 +240,7 @@ jobs:
       - uses: subosito/flutter-action@v2.8.0
         with:
           channel: "stable"
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           # cache: true
       - run: git config --system core.longpaths true
       - run: flutter gen-l10n
@@ -319,6 +328,7 @@ jobs:
         uses: subosito/flutter-action@v2.8.0
         with:
           channel: "stable"
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           # cache: true
 
       - name: Initiate Flutter
@@ -335,7 +345,7 @@ jobs:
         run: |
           mkdir -p linux/debian/usr/bin
           cp -fr build/linux/x64/release/bundle linux/debian/usr/share/g2w-monitor
-          ln -sr linux/debian/usr/share/g2w-monitor/bluecherry_client linux/debian/usr/bin/g2w-monitor
+          ln -sr linux/debian/usr/share/g2w-monitor/g2w-monitor linux/debian/usr/bin/g2w-monitor
 
           sed -i "s:cp -rf :cp -rf $(pwd)/:" linux/rpm/bluecherry.spec
           cd linux/debian
@@ -354,7 +364,7 @@ jobs:
           rm -r linux/debian/usr/bin
           mkdir -p linux/debian/usr/bin
           cp -fr build/linux/x64/release/bundle linux/debian/usr/share/g2w-monitor
-          ln -sr linux/debian/usr/share/g2w-monitor/bluecherry_client linux/debian/usr/bin/g2w-monitor
+          ln -sr linux/debian/usr/share/g2w-monitor/g2w-monitor linux/debian/usr/bin/g2w-monitor
 
       - name: Build DEB Package
         continue-on-error: true
@@ -372,7 +382,7 @@ jobs:
           rm -r linux/debian/usr/bin
           mkdir -p linux/debian/usr/bin
           cp -fr build/linux/x64/release/bundle linux/debian/usr/share/g2w-monitor
-          ln -sr linux/debian/usr/share/g2w-monitor/bluecherry_client linux/debian/usr/bin/g2w-monitor
+          ln -sr linux/debian/usr/share/g2w-monitor/g2w-monitor linux/debian/usr/bin/g2w-monitor
 
       - name: Build Tarball
         continue-on-error: true
@@ -406,6 +416,20 @@ jobs:
       #- name: Build Snapcraft
       #  run: |
       #    snapcraft
+
+      # Manual runs publish nothing: keep the packages as a workflow artifact
+      # so a branch can be tested before it is released.
+      - name: Upload Linux packages as workflow artifact
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: g2w-monitor-linux
+          path: |
+            g2w-monitor-linux-x86_64.deb
+            g2w-monitor-linux-x86_64.rpm
+            g2w-monitor-linux-x86_64.tar.gz
+            g2w-monitor-linux-x86_64.AppImage
+          retention-days: 7
 
       - name: Release
         # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-using-contexts
@@ -492,6 +516,7 @@ jobs:
         uses: subosito/flutter-action@v2.8.0
         with:
           channel: "stable"
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: false
 
       - name: Initiate Flutter

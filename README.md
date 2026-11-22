@@ -16,7 +16,7 @@ G2W Monitor é o cliente de vídeo da **G2W Tecnologia** para acompanhar câmera
 
 É uma **versão modificada do [Bluecherry Client](https://github.com/bluecherrydvr/unity)** — um excelente projeto livre, que serve de base para este trabalho. A G2W mantém aqui um conjunto de ajustes voltados ao cenário em que atendemos: servidores com autenticação obrigatória, estações sem GPU dedicada e gravações em H.265.
 
-## Ajustes desta versão
+## Ajustes em relação ao Bluecherry Client
 
 | Ajuste | O que muda na prática |
 |---|---|
@@ -25,6 +25,23 @@ G2W Monitor é o cliente de vídeo da **G2W Tecnologia** para acompanhar câmera
 | Decodificação por software (`hwdec=no`) | Imagem estável em estações sem GPU dedicada ou sem suporte a decodificação HEVC por hardware |
 | Cache do mpv configurado | Permite avançar e retroceder dentro da gravação |
 | Busca (*seek*) serializada na linha do tempo | Evita concorrência entre eventos sobrepostos ao mudar a posição do vídeo |
+
+## Versão 1.1.0 (novembro de 2026)
+
+Versão de estabilidade para quem deixa o aplicativo aberto o dia inteiro.
+
+| Mudança | O que muda na prática |
+|---|---|
+| Registro (*log*) por câmera reescrito | O aplicativo abria o arquivo de registro uma vez por linha, tudo ao mesmo tempo. Numa rajada de mensagens do player faltavam descritores de arquivo (`Too many open files`) e nada mais abria, nem conexão de rede. Agora há uma única escrita por vez, com limite de linhas e de tamanho (2 MB por câmera, uma geração anterior). |
+| Registro sem credenciais | Senha na URL, cabeçalho `Authorization`, cookie de sessão e `authtoken` são mascarados antes de ir para arquivo ou para o terminal. Os registros antigos, que guardavam esses dados, são apagados na primeira abertura. |
+| Player em nível `warn` | O mpv deixava de gravar milhares de linhas por minuto. Para diagnóstico: `G2W_MONITOR_PLAYER_LOG=v g2w-monitor`. |
+| Reconexão automática da câmera parada | O vigia de imagem parada comparava as horas ao contrário e nunca pedia a reconexão; e, quando pedia, o pedido era ignorado se o endereço fosse o mesmo (RTSP). Agora, sem imagem por 42 s, o stream é reaberto (no HLS, com chave nova) e as tentativas continuam, espaçadas até 5 min, enquanto o servidor estiver fora. |
+| Memória do ao vivo | Buffer por câmera reduzido de até 96 MiB para 17 MiB, sem cache em disco; a pasta temporária de cada player passa a ser removida. |
+| Sem `yt-dlp` | O mpv chamava o `yt-dlp` a cada falha de abertura de um endereço `https`, entregando a ele a URL do servidor. Desligado. |
+| Atualização dentro do app | Só oferece versão **mais nova** que a instalada, e baixa o instalador deste repositório (antes apontava para o Bluecherry original). |
+| Pacote `.deb`/`.rpm` | O comando `g2w-monitor` volta a existir em `/usr/bin`; ícones de 16 a 512 px. |
+| Ícone novo | "Câmera + anel", o mesmo do aplicativo de celular. |
+| Outros | Arrastar câmera para fora da grade não gera mais erro; quadros da grade aparecem conforme os players são criados. |
 
 Cada ajuste está isolado em um commit próprio, com a descrição técnica na mensagem. Sempre que forem úteis ao projeto original, enviamos as correções de volta como *pull request*.
 
@@ -70,7 +87,7 @@ Precisa de ajuda para configurar? Fale com a gente pelos canais no topo.
 
 ## Compilando do código-fonte
 
-Requer [Flutter](https://docs.flutter.dev/get-started/install) 3.44 ou superior.
+Requer [Flutter](https://docs.flutter.dev/get-started/install) **3.44.8** — a mesma versão fixada na integração contínua (`FLUTTER_VERSION` em `.github/workflows/build.yml`).
 
 ```bash
 git clone https://github.com/gabrielpst/unity_g2w.git
@@ -84,6 +101,8 @@ flutter pub get
 sudo apt install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libmpv-dev libsecret-1-dev libjsoncpp-dev
 flutter build linux --release
 ```
+
+Antes de enviar mudanças: `dart format .`, `flutter analyze --no-fatal-infos` e `flutter test`.
 
 **Windows** (precisa ser executado no Windows, com Visual Studio Build Tools):
 

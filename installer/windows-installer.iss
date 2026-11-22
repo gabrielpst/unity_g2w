@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "G2W Monitor"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "1.1.0"
 #define MyAppPublisher "G2W Tecnologia"
 #define MyAppURL "https://monitor.g2wseguranca.com.br/"
 #define MyAppExeName "g2w-monitor.exe"

@@ -274,18 +274,18 @@ class UnityPlayers with ChangeNotifier {
     }();
   }
 
-  /// Reload all video players.
+  /// Reload all video players, one at a time.
   ///
   /// [onlyIfTimedOut], if true, the device will only be reloaded if it's timed out
-  static void reloadAll({bool onlyIfTimedOut = false}) {
-    for (final entry in players.entries) {
+  static Future<void> reloadAll({bool onlyIfTimedOut = false}) async {
+    // Copy: reloading changes the map.
+    for (final entry in players.entries.toList()) {
       final player = entry.value;
-      if (onlyIfTimedOut) {
-        if (!player.isImageOld) continue;
-      }
-      final deviceUUID = entry.key;
-      final device = Device.fromUUID(deviceUUID);
-      if (device != null) reloadDevice(device);
+      if (onlyIfTimedOut && !player.isImageOld) continue;
+      final device = Device.fromUUID(entry.key);
+      // One after the other. Tearing every player down at the same moment
+      // is what froze the window.
+      if (device != null) await reloadDevice(device);
     }
   }
 

@@ -61,6 +61,25 @@ abstract class UnityVideoPlayerInterface extends PlatformInterface {
     _instance = instance;
   }
 
+  /// Whether the window is hidden (minimized, on another workspace). Flutter
+  /// stops drawing then, the players can not hand their frames over and
+  /// anything asked from them may take long: the stall watchdog stays quiet.
+  static bool get appHidden => _appHidden;
+  static bool _appHidden = false;
+
+  /// Tells the players whether the window is hidden. When it becomes
+  /// visible again every live player gets a short grace period to show a
+  /// new image before it is reopened.
+  static void setAppHidden(bool hidden) {
+    if (hidden == _appHidden) return;
+    _appHidden = hidden;
+    if (!hidden) {
+      for (final player in players) {
+        player.noteVisibleAgain();
+      }
+    }
+  }
+
   /// Whether the app should be kept awake while playing videos.
   static bool wakelockEnabled = true;
 
@@ -308,6 +327,7 @@ abstract class UnityVideoPlayer with ChangeNotifier {
   /// Registers that the stream produced a new image.
   void _markImageFresh() {
     _lastImageTime = clock();
+    _quickRecheck = false;
     _reloadAttempts = 0;
     _lastReloadTime = null;
     error = null;
@@ -315,6 +335,19 @@ abstract class UnityVideoPlayer with ChangeNotifier {
       _isImageOld = false;
       notifyListeners();
     }
+  }
+
+  bool _quickRecheck = false;
+
+  /// Called when the window is visible again after being hidden. The time
+  /// spent hidden says nothing about the stream: start counting from now,
+  /// and reopen sooner than usual if no image shows up.
+  void noteVisibleAgain() {
+    _lastImageTime = null;
+    _waitingSince = clock();
+    _lastReloadTime = null;
+    _reloadAttempts = 0;
+    _quickRecheck = true;
   }
 
   /// The watchdog of live streams. Called every [timerInterval].
@@ -334,7 +367,7 @@ abstract class UnityVideoPlayer with ChangeNotifier {
     // stream paused on purpose is not expected to move either. [isPlaying]
     // is not used here: it also turns false when the stream fails to open,
     // which is exactly when the retry is needed.
-    if (!isLive || pausedOnPurpose) {
+    if (!isLive || pausedOnPurpose || UnityVideoPlayerInterface.appHidden) {
       _waitingSince = clock();
       return;
     }
@@ -348,7 +381,9 @@ abstract class UnityVideoPlayer with ChangeNotifier {
       notifyListeners();
     }
 
-    if (stalledFor < reloadAfter || onReload == null) return;
+    final threshold = _quickRecheck ? timerInterval : reloadAfter;
+    if (stalledFor < threshold || onReload == null) return;
+    _quickRecheck = false;
 
     var backoff = reloadAfter * (1 << _reloadAttempts.clamp(0, 4));
     if (backoff > maxReloadBackoff) backoff = maxReloadBackoff;

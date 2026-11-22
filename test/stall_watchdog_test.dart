@@ -176,6 +176,48 @@ void main() {
     expect(reloads, 0);
   });
 
+  test('stays quiet while the window is hidden', () {
+    UnityVideoPlayerInterface.registerPlayer(player);
+    addTearDown(() {
+      UnityVideoPlayerInterface.setAppHidden(false);
+      UnityVideoPlayerInterface.unregisterPlayer(player);
+    });
+
+    UnityVideoPlayerInterface.setAppHidden(true);
+    for (var i = 0; i < 500; i++) {
+      advance(const Duration(seconds: 14));
+    }
+    expect(reloads, 0, reason: 'nothing is asked from a hidden player');
+
+    // Visible again: the hidden time does not count, a dead stream gets one
+    // short grace period and is then reopened in place.
+    UnityVideoPlayerInterface.setAppHidden(false);
+    expect(reloads, 0);
+    advance(const Duration(seconds: 13));
+    expect(reloads, 0);
+    advance(const Duration(seconds: 1));
+    expect(reloads, 1);
+  });
+
+  test('a healthy stream is left alone when the window comes back', () async {
+    UnityVideoPlayerInterface.registerPlayer(player);
+    addTearDown(() {
+      UnityVideoPlayerInterface.setAppHidden(false);
+      UnityVideoPlayerInterface.unregisterPlayer(player);
+    });
+
+    UnityVideoPlayerInterface.setAppHidden(true);
+    advance(const Duration(hours: 9));
+    UnityVideoPlayerInterface.setAppHidden(false);
+    for (var i = 0; i < 10; i++) {
+      now = now.add(const Duration(seconds: 13));
+      player.position.add(Duration(seconds: i + 1));
+      await Future<void>.delayed(Duration.zero);
+      advance(const Duration(seconds: 1));
+    }
+    expect(reloads, 0);
+  });
+
   test('force reopens the same URL', () async {
     await player.setDataSource('rtsp://camera/live/1');
     expect(player.opened, 0);

@@ -237,11 +237,14 @@ class _UnityAppState extends State<UnityApp>
       case AppLifecycleState.resumed:
         debugPrint('in foreground');
 
-        // When the app is resumed from background to foreground, reload all
-        // unity players
-        if (isInBackground) {
-          UnityPlayers.reloadAll(onlyIfTimedOut: true);
-        }
+        // This used to dispose and recreate every player whose image looked
+        // old - in practice all of them, all at once, on the UI thread, at
+        // the very moment the window came back. In the field 8 of the 10
+        // sessions that did not end cleanly stopped exactly here: the last
+        // thing the app ever logged was the release of its players.
+        // The stall watchdog of each player now reopens, in place, only the
+        // streams that really stopped.
+        UnityVideoPlayerInterface.setAppHidden(false);
 
         isInBackground = false;
 
@@ -255,6 +258,11 @@ class _UnityAppState extends State<UnityApp>
       case AppLifecycleState.hidden:
         debugPrint('in background');
         isInBackground = true;
+        // `inactive` only means the window lost the focus: it is still on
+        // screen and still drawing.
+        if (state != AppLifecycleState.inactive) {
+          UnityVideoPlayerInterface.setAppHidden(true);
+        }
 
         // After 30 seconds in background, pause all the streams
         backgroundTimer = Timer(const Duration(seconds: 30), () async {

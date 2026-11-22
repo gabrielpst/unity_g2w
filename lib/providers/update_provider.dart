@@ -328,7 +328,8 @@ class UpdateManager extends UnityProvider {
       extension = '.exe';
     } else if (Platform.isLinux) {
       fileName = UpdateVersion.linuxDownloadFileName;
-      extension = '.$linuxEnvironment';
+      // The enum itself would print as `LinuxPlatform.deb`.
+      extension = '.${linuxEnvironment.value}';
     } else {
       downloading = false;
       notifyListeners();

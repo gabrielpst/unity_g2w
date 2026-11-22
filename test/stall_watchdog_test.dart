@@ -218,6 +218,40 @@ void main() {
     expect(reloads, 0);
   });
 
+  test('MJPEG has no clock and is never reopened', () {
+    player.source = 'https://server/media/mjpeg?id=1';
+    for (var i = 0; i < 50; i++) {
+      advance(const Duration(seconds: 14));
+    }
+    expect(reloads, 0);
+  });
+
+  test('coming back keeps the time of the last image', () async {
+    UnityVideoPlayerInterface.registerPlayer(player);
+    addTearDown(() {
+      UnityVideoPlayerInterface.setAppHidden(false);
+      UnityVideoPlayerInterface.unregisterPlayer(player);
+    });
+    player.position.add(const Duration(seconds: 1));
+    await Future<void>.delayed(Duration.zero);
+    final last = player.lastImageUpdate;
+    expect(last, isNotNull);
+
+    UnityVideoPlayerInterface.setAppHidden(true);
+    advance(const Duration(hours: 1));
+    UnityVideoPlayerInterface.setAppHidden(false);
+    expect(player.lastImageUpdate, last);
+  });
+
+  test('a player that gets ready after its dispose stays dead', () async {
+    final late = _FakePlayer()..onReload = () => reloads++;
+    await late.dispose();
+    late.onReady();
+    late.clock = () => now.add(const Duration(hours: 1));
+    late.checkStalled();
+    expect(reloads, 0);
+  });
+
   test('force reopens the same URL', () async {
     await player.setDataSource('rtsp://camera/live/1');
     expect(player.opened, 0);

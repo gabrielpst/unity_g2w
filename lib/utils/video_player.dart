@@ -253,7 +253,8 @@ class UnityPlayers with ChangeNotifier {
 
   /// Reload the video player for the given [Device].
   ///
-  /// Reloads of the same device are not allowed to overlap. They are asked
+  /// Reloads of the same device are not allowed to overlap: they run one
+  /// after the other. They are asked
   /// for from several places (window back in foreground, server refresh,
   /// the reload button) and two of them running together both waited for the
   /// old player to be disposed and then each created a new one: the second
@@ -261,7 +262,14 @@ class UnityPlayers with ChangeNotifier {
   /// nobody to render or dispose it - decoding video in the background until
   /// the app was closed.
   static Future<void> reloadDevice(Device device) {
-    return _reloads[device.uuid] ??= () async {
+    // Queue behind the reload in progress instead of joining it: a later
+    // request may carry a changed [device] (another URL or streaming type).
+    final previous = _reloads[device.uuid];
+    late final Future<void> current;
+    current = () async {
+      try {
+        await previous;
+      } catch (_) {}
       try {
         await releaseDevice(device.uuid);
         // Something else (a layout being opened) may have created the player
@@ -269,9 +277,12 @@ class UnityPlayers with ChangeNotifier {
         players[device.uuid] ??= forDevice(device);
         instance.notifyListeners();
       } finally {
-        _reloads.remove(device.uuid);
+        if (identical(_reloads[device.uuid], current)) {
+          _reloads.remove(device.uuid);
+        }
       }
     }();
+    return _reloads[device.uuid] = current;
   }
 
   /// Reload all video players, one at a time.

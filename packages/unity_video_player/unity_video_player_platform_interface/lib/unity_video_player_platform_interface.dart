@@ -295,9 +295,13 @@ abstract class UnityVideoPlayer with ChangeNotifier {
   /// listened to.
   late final VoidCallback onReady;
   bool _isReady = false;
+  bool _isDisposed = false;
 
   UnityVideoPlayer({this.width, this.height}) {
     onReady = () {
+      // The backend reports readiness asynchronously: it may arrive after a
+      // short-lived player was already disposed.
+      if (_isDisposed) return;
       if (_isReady) {
         // Implementations may call this every time a new source is opened.
         // Drop the previous subscriptions first, so repeated re-opens do not
@@ -327,6 +331,7 @@ abstract class UnityVideoPlayer with ChangeNotifier {
   /// Registers that the stream produced a new image.
   void _markImageFresh() {
     _lastImageTime = clock();
+    _stallReference = null;
     _quickRecheck = false;
     _reloadAttempts = 0;
     _lastReloadTime = null;
@@ -339,12 +344,26 @@ abstract class UnityVideoPlayer with ChangeNotifier {
 
   bool _quickRecheck = false;
 
+  /// Whether the current source reports a playback position. MJPEG over
+  /// HTTP has no timestamps: the position may never move on a healthy
+  /// stream, so the watchdog can not tell it apart from a frozen one.
+  bool get _hasClock {
+    final source = dataSource?.toLowerCase() ?? '';
+    return !source.contains('media/mjpeg');
+  }
+
+  /// Start of the current wait for an image, when it is not the last image
+  /// itself (the window was hidden in between).
+  DateTime? _stallReference;
+
   /// Called when the window is visible again after being hidden. The time
   /// spent hidden says nothing about the stream: start counting from now,
   /// and reopen sooner than usual if no image shows up.
   void noteVisibleAgain() {
-    _lastImageTime = null;
-    _waitingSince = clock();
+    // [lastImageUpdate] is left alone: the interface and the fallback rule
+    // read it.
+    _stallReference = clock();
+    _waitingSince = _stallReference;
     _lastReloadTime = null;
     _reloadAttempts = 0;
     _quickRecheck = true;
@@ -367,13 +386,20 @@ abstract class UnityVideoPlayer with ChangeNotifier {
     // stream paused on purpose is not expected to move either. [isPlaying]
     // is not used here: it also turns false when the stream fails to open,
     // which is exactly when the retry is needed.
-    if (!isLive || pausedOnPurpose || UnityVideoPlayerInterface.appHidden) {
+    if (_isDisposed) {
+      _oldImageTimer?.cancel();
+      return;
+    }
+    if (!isLive ||
+        !_hasClock ||
+        pausedOnPurpose ||
+        UnityVideoPlayerInterface.appHidden) {
       _waitingSince = clock();
       return;
     }
 
     final now = clock();
-    final reference = _lastImageTime ?? _waitingSince ?? now;
+    final reference = _stallReference ?? _lastImageTime ?? _waitingSince ?? now;
     final stalledFor = now.difference(reference);
 
     if (stalledFor >= timerInterval && !_isImageOld) {
@@ -591,6 +617,7 @@ abstract class UnityVideoPlayer with ChangeNotifier {
         debugPrint('Tried to cancel subscriptions but failed: $error, $stack');
       }
     }
+    _isDisposed = true;
     _oldImageTimer?.cancel();
     _oldImageTimer = null;
     _lastImageTime = null;

@@ -239,7 +239,9 @@ class _WindowButtonsState extends State<WindowButtons>
                         Padding(
                           padding: const EdgeInsetsDirectional.only(start: 8.0),
                           child: Image.asset(
-                            'assets/images/icon.png',
+                            // Variant drawn for small sizes: the full icon
+                            // turns into a blur at 16 px.
+                            'assets/images/icon_small.png',
                             height: 16.0,
                             width: 16.0,
                           ),

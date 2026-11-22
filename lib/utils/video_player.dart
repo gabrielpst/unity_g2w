@@ -233,22 +233,43 @@ class UnityPlayers with ChangeNotifier {
 
   /// Release the video player for the given [Device].
   static Future<void> releaseDevice(String deviceUUID) async {
-    debugPrint('Releasing device $deviceUUID. ${players[deviceUUID]}');
+    // Take the player out of the map before the (asynchronous) dispose, so
+    // nobody else can pick up, or dispose again, a player that is going away.
+    final player = players.remove(deviceUUID);
+    debugPrint('Releasing device $deviceUUID. $player');
     _reloadable.remove(deviceUUID);
     try {
-      await players[deviceUUID]?.dispose();
+      await player?.dispose();
     } catch (error, stack) {
       handleError(error, stack, 'Error releasing video player');
     }
-    players.remove(deviceUUID);
     instance.notifyListeners();
   }
 
+  /// Reloads in progress, by device.
+  static final _reloads = <String, Future<void>>{};
+
   /// Reload the video player for the given [Device].
-  static Future<void> reloadDevice(Device device) async {
-    await releaseDevice(device.uuid);
-    players[device.uuid] = forDevice(device);
-    instance.notifyListeners();
+  ///
+  /// Reloads of the same device are not allowed to overlap. They are asked
+  /// for from several places (window back in foreground, server refresh,
+  /// the reload button) and two of them running together both waited for the
+  /// old player to be disposed and then each created a new one: the second
+  /// replaced the first in [players], which was left running forever with
+  /// nobody to render or dispose it - decoding video in the background until
+  /// the app was closed.
+  static Future<void> reloadDevice(Device device) {
+    return _reloads[device.uuid] ??= () async {
+      try {
+        await releaseDevice(device.uuid);
+        // Something else (a layout being opened) may have created the player
+        // while the old one was being disposed: keep that one.
+        players[device.uuid] ??= forDevice(device);
+        instance.notifyListeners();
+      } finally {
+        _reloads.remove(device.uuid);
+      }
+    }();
   }
 
   /// Reload all video players.

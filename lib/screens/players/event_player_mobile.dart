@@ -90,7 +90,6 @@ class __EventPlayerMobileState extends State<_EventPlayerMobile> {
             ).toString()
             : widget.event.mediaPath;
 
-    debugPrint(mediaUrl);
     if (videoController.dataSource != mediaUrl) {
       debugPrint(
         'Setting data source from ${videoController.dataSource} to $mediaUrl',

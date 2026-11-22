@@ -71,7 +71,7 @@ final navigatorKey = GlobalKey<NavigatorState>();
 Future<void> main(List<String> args) async {
   runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
-    logging.setupLogging();
+    await logging.setupLogging();
     await preconfigureWindow();
     await initializeDateFormatting();
     await configureStorage();
@@ -98,7 +98,8 @@ Future<void> main(List<String> args) async {
         // Force the media_kit (libmpv) backend on desktop: the fvp/video_player
         // fallback ignores the HTTP auth headers the app passes, which breaks
         // playback against any server that requires authentication.
-        if (!kIsWeb && (Platform.isLinux || Platform.isWindows || Platform.isMacOS)) {
+        if (!kIsWeb &&
+            (Platform.isLinux || Platform.isWindows || Platform.isMacOS)) {
           UnityVideoPlayerMediaKitInterface.registerWith();
         }
         DevHttpOverrides.configureCertificates();

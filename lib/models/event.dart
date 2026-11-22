@@ -210,13 +210,15 @@ class Event {
   String get mediaPath {
     // Only embed credentials when both are present: an empty pair produces a
     // malformed "scheme://:@host" URL that the native player rejects outright.
-    final hasCredentials = server.login.isNotEmpty && server.password.isNotEmpty;
-    final credentials = hasCredentials
-        ? '${Uri.encodeComponent(server.login)}'
-              ':'
-              '${Uri.encodeComponent(server.password)}'
-              '@'
-        : '';
+    final hasCredentials =
+        server.login.isNotEmpty && server.password.isNotEmpty;
+    final credentials =
+        hasCredentials
+            ? '${Uri.encodeComponent(server.login)}'
+                ':'
+                '${Uri.encodeComponent(server.password)}'
+                '@'
+            : '';
     final result =
         '${mediaURL!.scheme}://'
         '$credentials'

@@ -29,6 +29,7 @@ import 'package:bluecherry_client/providers/settings_provider.dart';
 import 'package:bluecherry_client/screens/downloads/indicators.dart';
 import 'package:bluecherry_client/screens/layouts/desktop/multicast_view.dart';
 import 'package:bluecherry_client/screens/layouts/video_status_label.dart';
+import 'package:bluecherry_client/utils/sanitize.dart';
 import 'package:bluecherry_client/utils/date.dart';
 import 'package:bluecherry_client/utils/extensions.dart';
 import 'package:bluecherry_client/utils/video_player.dart';
@@ -157,7 +158,7 @@ class _EventPlayerDesktopState extends State<EventPlayerDesktop> {
       );
       videoController.setDataSource(mediaUrl, headers: event.server.headers);
     } else {
-      debugPrint(mediaUrl);
+      debugPrint(sanitizeSensitiveData(mediaUrl));
     }
     videoController
       ..setVolume(volume)

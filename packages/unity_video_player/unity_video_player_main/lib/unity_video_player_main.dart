@@ -135,7 +135,21 @@ class _MKVideoState extends State<_MKVideo> {
   }
 }
 
+/// Set the environment variable `G2W_MONITOR_PLAYER_LOG=v` to get the
+/// verbose mpv output in the per-camera log files.
+final bool _verbosePlayerLog =
+    !kIsWeb && Platform.environment['G2W_MONITOR_PLAYER_LOG'] == 'v';
+
+/// The cache directories created for the players of this run. mpv is given
+/// one per player and nothing ever removed them, so every reload of a
+/// camera left a directory behind in the system temp folder.
+String _createCacheDir() {
+  return Directory.systemTemp.createTempSync('g2w_monitor_mpv_').path;
+}
+
 class UnityVideoPlayerMediaKit extends UnityVideoPlayer {
+  String? _cacheDir;
+
   late final Player mkPlayer;
   get platform => (mkPlayer.platform as dynamic);
   late VideoController mkVideoController;
@@ -158,7 +172,10 @@ class UnityVideoPlayerMediaKit extends UnityVideoPlayer {
   }) {
     mkPlayer = Player(
       configuration: PlayerConfiguration(
-        logLevel: MPVLogLevel.v,
+        // Verbose output is thousands of lines per minute per camera (mpv
+        // reports every frame it could not hand to the renderer while the
+        // window is hidden). Keep it for troubleshooting only.
+        logLevel: _verbosePlayerLog ? MPVLogLevel.v : MPVLogLevel.warn,
         title: title,
         ready: onReady,
       ),
@@ -194,12 +211,28 @@ class UnityVideoPlayerMediaKit extends UnityVideoPlayer {
         // when no writable cache-dir is configured, which breaks seeking on the
         // recording endpoint even though the server serves byte ranges.
         ..setProperty('cache', 'yes')
-        ..setProperty('cache-dir', Directory.systemTemp.createTempSync('mpv_cache_').path)
-        ..setProperty('demuxer-max-bytes', '64MiB')
-        ..setProperty('demuxer-max-back-bytes', '32MiB')
-        // Recordings are full range (yuvj420p / color_range=pc). Emitting
-        // limited-range RGB washes them out - blacks come out grey.
-        ..setProperty('video-output-levels', 'full');
+        // Never hand a stream URL (it carries the credentials of the
+        // server) to an external yt-dlp process. mpv does that for every
+        // http(s) URL it fails to open, once per retry.
+        ..setProperty('script-opts', 'ytdl_hook-exclude=.*')
+        ..setProperty('ytdl', 'no');
+      if (enableCache) {
+        // Recordings: seeking needs the on-disk cache.
+        (platform as dynamic)
+          ..setProperty('cache-dir', _cacheDir = _createCacheDir())
+          ..setProperty('demuxer-max-bytes', '64MiB')
+          ..setProperty('demuxer-max-back-bytes', '32MiB');
+      } else {
+        // Live: nothing to seek back to. A small in-memory buffer keeps the
+        // memory of a camera grid flat (it was up to 96 MiB per camera).
+        (platform as dynamic)
+          ..setProperty('cache-on-disk', 'no')
+          ..setProperty('demuxer-max-bytes', '16MiB')
+          ..setProperty('demuxer-max-back-bytes', '1MiB');
+      }
+      // Recordings are full range (yuvj420p / color_range=pc). Emitting
+      // limited-range RGB washes them out - blacks come out grey.
+      (platform as dynamic).setProperty('video-output-levels', 'full');
       platform
         ..observeProperty('estimated-vf-fps', (fps) async {
           _fps = double.parse(fps);
@@ -222,7 +255,9 @@ class UnityVideoPlayerMediaKit extends UnityVideoPlayer {
 
       mkPlayer.stream.log.listen((event) {
         final logMessage = '${event.level} | ${event.prefix}: ${event.text}';
-        if (event.level != 'v') debugPrint(logMessage);
+        // Player output can carry the stream URL and its credentials, and
+        // stdout ends up in the system journal: only echo it when asked to.
+        if (_verbosePlayerLog && event.level != 'v') debugPrint(logMessage);
         if (event.level == 'fatal') {
           // ignore: invalid_use_of_protected_member
           platform.errorController.add(event.text);
@@ -330,9 +365,10 @@ class UnityVideoPlayerMediaKit extends UnityVideoPlayer {
     String url, {
     bool autoPlay = true,
     Map<String, String>? headers,
+    bool force = false,
   }) {
-    if (url == dataSource) return Future.value();
-    debugPrint('Playing $url');
+    if (!force && url == dataSource) return Future.value();
+    if (autoPlay) pausedOnPurpose = false;
     return ensureVideoControllerInitialized((controller) async {
       await mkPlayer.setPlaylistMode(PlaylistMode.loop);
       // do not use mkPlayer.add because it doesn't support auto play
@@ -396,13 +432,17 @@ class UnityVideoPlayerMediaKit extends UnityVideoPlayer {
 
   @override
   Future<void> start() {
+    pausedOnPurpose = false;
     return ensureVideoControllerInitialized((controller) async {
       await mkPlayer.play();
     });
   }
 
   @override
-  Future<void> pause() => mkPlayer.pause();
+  Future<void> pause() {
+    pausedOnPurpose = true;
+    return mkPlayer.pause();
+  }
 
   @override
   Future<void> release() async {
@@ -515,5 +555,11 @@ class UnityVideoPlayerMediaKit extends UnityVideoPlayer {
     await _fpsStreamController.close();
     await mkPlayer.dispose();
     UnityVideoPlayerInterface.unregisterPlayer(this);
+    final cacheDir = _cacheDir;
+    if (cacheDir != null) {
+      try {
+        await Directory(cacheDir).delete(recursive: true);
+      } catch (_) {}
+    }
   }
 }

@@ -14,11 +14,11 @@ bool get isPi => const String.fromEnvironment('linux_environment') == 'pi';
 class UnityVideoPlayerFlutterInterface extends UnityVideoPlayerInterface {
   /// Registers this class as the default instance of [UnityVideoPlayerInterface].
   static void registerWith() {
-//    if ('pi' case const String.fromEnvironment('linux_environment')) {
+    //    if ('pi' case const String.fromEnvironment('linux_environment')) {
     UnityVideoPlayerInterface.instance = UnityVideoPlayerFlutterInterface();
-//      return;
-//    }
-//    UnityVideoPlayerInterface.instance = UnityVideoPlayerMediaKitInterface();
+    //      return;
+    //    }
+    //    UnityVideoPlayerInterface.instance = UnityVideoPlayerMediaKitInterface();
   }
 
   @override
@@ -27,16 +27,18 @@ class UnityVideoPlayerFlutterInterface extends UnityVideoPlayerInterface {
       FlutterpiVideoPlayer.registerWith();
     } else {
       final forceFFmpeg = arguments is Map && arguments['forceFFmpeg'] == true;
-      fvp.registerWith(options: {
-        if (forceFFmpeg) 'video.decoders': ['FFmpeg'],
-        'player': {
-          'avformat.analyzeduration': '10000',
-          'avformat.probesize': '1000',
-          'avformat.fpsprobesize': '0',
-          'avformat.fflags': '+nobuffer',
-          'avformat.avioflags': 'direct',
-        }
-      });
+      fvp.registerWith(
+        options: {
+          if (forceFFmpeg) 'video.decoders': ['FFmpeg'],
+          'player': {
+            'avformat.analyzeduration': '10000',
+            'avformat.probesize': '1000',
+            'avformat.fpsprobesize': '0',
+            'avformat.fflags': '+nobuffer',
+            'avformat.avioflags': 'direct',
+          },
+        },
+      );
     }
   }
 
@@ -72,35 +74,40 @@ class UnityVideoPlayerFlutterInterface extends UnityVideoPlayerInterface {
   }) {
     videoBuilder ??= (context, video) => video;
 
-    return Builder(builder: (context) {
-      return Stack(children: [
-        const Positioned.fill(child: SizedBox.expand()),
-        Positioned.fill(
-          child: videoBuilder!(
-            context,
-            ColoredBox(
-              color: color,
-              child: player.player == null
-                  ? const SizedBox.expand()
-                  : FittedBox(
-                      fit: fit.boxFit,
-                      child: SizedBox.fromSize(
-                        size: player.player!.value.size,
-                        child: VideoPlayer(player.player!),
-                      ),
-                    ),
+    return Builder(
+      builder: (context) {
+        return Stack(
+          children: [
+            const Positioned.fill(child: SizedBox.expand()),
+            Positioned.fill(
+              child: videoBuilder!(
+                context,
+                ColoredBox(
+                  color: color,
+                  child:
+                      player.player == null
+                          ? const SizedBox.expand()
+                          : FittedBox(
+                            fit: fit.boxFit,
+                            child: SizedBox.fromSize(
+                              size: player.player!.value.size,
+                              child: VideoPlayer(player.player!),
+                            ),
+                          ),
+                ),
+              ),
             ),
-          ),
-        ),
-        if (paneBuilder != null)
-          Positioned.fill(
-            child: Material(
-              type: MaterialType.transparency,
-              child: paneBuilder(context, player),
-            ),
-          ),
-      ]);
-    });
+            if (paneBuilder != null)
+              Positioned.fill(
+                child: Material(
+                  type: MaterialType.transparency,
+                  child: paneBuilder(context, player),
+                ),
+              ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -126,7 +133,8 @@ class UnityVideoPlayerFlutter extends UnityVideoPlayer {
   }) {
     if (title != null) this.title = title;
     onLog?.call(
-        'Initialized player $title with width=$width and height=$height');
+      'Initialized player $title with width=$width and height=$height',
+    );
   }
 
   @override
@@ -185,15 +193,17 @@ class UnityVideoPlayerFlutter extends UnityVideoPlayer {
     String url, {
     bool autoPlay = true,
     Map<String, String>? headers,
+    bool force = false,
   }) async {
-    if (url == dataSource) return Future.value();
+    if (!force && url == dataSource) return Future.value();
+    if (autoPlay) pausedOnPurpose = false;
 
     if (player != null) {
-      debugPrint('Disposing player for $dataSource');
+      debugPrint('Disposing player $title');
       await player?.dispose();
       player = null;
     }
-    debugPrint('Playing $url');
+    debugPrint('Playing $title');
 
     final uri = Uri.parse(url);
 
@@ -236,8 +246,11 @@ class UnityVideoPlayerFlutter extends UnityVideoPlayer {
   }) {
     _multipleDataSources = url.toList();
     _multipleDataSourceHeaders = headers;
-    return setDataSource(url.elementAt(startIndex),
-        autoPlay: autoPlay, headers: headers);
+    return setDataSource(
+      url.elementAt(startIndex),
+      autoPlay: autoPlay,
+      headers: headers,
+    );
   }
 
   @override
@@ -246,8 +259,10 @@ class UnityVideoPlayerFlutter extends UnityVideoPlayer {
       return Future.error('Index out of range');
     }
 
-    return setDataSource(_multipleDataSources[index],
-        headers: _multipleDataSourceHeaders);
+    return setDataSource(
+      _multipleDataSources[index],
+      headers: _multipleDataSourceHeaders,
+    );
   }
 
   // Volume in media kit goes from 0 to 100
@@ -282,9 +297,7 @@ class UnityVideoPlayerFlutter extends UnityVideoPlayer {
 
   @override
   Future<String> getProperty(String propertyName) {
-    throw UnsupportedError(
-      'getProperty is not supported on this platform',
-    );
+    throw UnsupportedError('getProperty is not supported on this platform');
   }
 
   @override
@@ -298,10 +311,16 @@ class UnityVideoPlayerFlutter extends UnityVideoPlayer {
   Future<void> setSize(Size size) => Future.value();
 
   @override
-  Future<void> start() async => await player?.play();
+  Future<void> start() async {
+    pausedOnPurpose = false;
+    await player?.play();
+  }
 
   @override
-  Future<void> pause() async => await player?.pause();
+  Future<void> pause() async {
+    pausedOnPurpose = true;
+    await player?.pause();
+  }
 
   @override
   Future<void> release() async {
@@ -319,7 +338,7 @@ class UnityVideoPlayerFlutter extends UnityVideoPlayer {
 
   @override
   Future<void> dispose() async {
-    debugPrint('Disposing player for $dataSource');
+    debugPrint('Disposing player $title');
     await release();
     await super.dispose();
     await _videoStream.close();

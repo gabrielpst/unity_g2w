@@ -211,7 +211,16 @@ abstract class UnityVideoPlayer with ChangeNotifier {
       ..onLog = onLog;
   }
 
+  /// How often the stall watchdog checks whether the image moved.
   static const timerInterval = Duration(seconds: 14);
+
+  /// A live stream without a new image for this long is reopened.
+  static const reloadAfter = Duration(seconds: 42);
+
+  /// Upper bound of the wait between two reopen attempts of a stream that
+  /// keeps failing (camera or server offline).
+  static const maxReloadBackoff = Duration(minutes: 5);
+
   Timer? _oldImageTimer;
   bool _isImageOld = false;
 
@@ -225,6 +234,24 @@ abstract class UnityVideoPlayer with ChangeNotifier {
   bool get isImageOld => _isImageOld;
   DateTime? _lastImageTime;
   DateTime? get lastImageUpdate => _lastImageTime;
+
+  /// When the watchdog started to wait for an image (source opened/reopened).
+  DateTime? _waitingSince;
+  DateTime? _lastReloadTime;
+  int _reloadAttempts = 0;
+
+  /// Number of times the watchdog asked for the stream to be reopened since
+  /// the last image.
+  @visibleForTesting
+  int get reloadAttempts => _reloadAttempts;
+
+  /// Whether playback was paused by the app or the user, as opposed to
+  /// stopped by a failure. Implementations set it in [pause] and [start].
+  bool pausedOnPurpose = false;
+
+  /// The current time. Replaced in tests.
+  @visibleForTesting
+  DateTime Function() clock = DateTime.now;
 
   late StreamSubscription<Duration> _onDurationUpdateSubscription;
   late StreamSubscription<String> _onErrorSubscription;
@@ -252,7 +279,17 @@ abstract class UnityVideoPlayer with ChangeNotifier {
 
   UnityVideoPlayer({this.width, this.height}) {
     onReady = () {
+      if (_isReady) {
+        // Implementations may call this every time a new source is opened.
+        // Drop the previous subscriptions first, so repeated re-opens do not
+        // accumulate duplicate listeners.
+        _onErrorSubscription.cancel();
+        _onDurationUpdateSubscription.cancel();
+        _onPositionUpdateSubscription.cancel();
+        _fpsSubscription.cancel();
+      }
       _isReady = true;
+      _startWatchdog();
       _onErrorSubscription = onError.listen(_onError);
       _onDurationUpdateSubscription =
           onDurationUpdate.listen(_onDurationUpdate);
@@ -262,28 +299,75 @@ abstract class UnityVideoPlayer with ChangeNotifier {
     };
   }
 
+  void _startWatchdog() {
+    _waitingSince = clock();
+    _oldImageTimer?.cancel();
+    _oldImageTimer = Timer.periodic(timerInterval, (_) => checkStalled());
+  }
+
+  /// Registers that the stream produced a new image.
+  void _markImageFresh() {
+    _lastImageTime = clock();
+    _reloadAttempts = 0;
+    _lastReloadTime = null;
+    error = null;
+    if (_isImageOld) {
+      _isImageOld = false;
+      notifyListeners();
+    }
+  }
+
+  /// The watchdog of live streams. Called every [timerInterval].
+  ///
+  /// Marks the image as old when nothing arrived for a while and, after
+  /// [reloadAfter], asks for the stream to be reopened through [onReload].
+  /// While the stream keeps failing the attempts are spaced out, doubling up
+  /// to [maxReloadBackoff], and they never stop: the camera comes back by
+  /// itself when the server or the network returns.
+  ///
+  /// A previous version compared the timestamps the wrong way around
+  /// (`last.difference(now)`, always negative), so the reload never happened
+  /// and a stream that froze stayed frozen until the app was restarted.
+  @visibleForTesting
+  void checkStalled() {
+    // Recordings can be paused for as long as the user wants, and a live
+    // stream paused on purpose is not expected to move either. [isPlaying]
+    // is not used here: it also turns false when the stream fails to open,
+    // which is exactly when the retry is needed.
+    if (!isLive || pausedOnPurpose) {
+      _waitingSince = clock();
+      return;
+    }
+
+    final now = clock();
+    final reference = _lastImageTime ?? _waitingSince ?? now;
+    final stalledFor = now.difference(reference);
+
+    if (stalledFor >= timerInterval && !_isImageOld) {
+      _isImageOld = true;
+      notifyListeners();
+    }
+
+    if (stalledFor < reloadAfter || onReload == null) return;
+
+    var backoff = reloadAfter * (1 << _reloadAttempts.clamp(0, 4));
+    if (backoff > maxReloadBackoff) backoff = maxReloadBackoff;
+    final lastAttempt = _lastReloadTime;
+    if (lastAttempt != null && now.difference(lastAttempt) < backoff) return;
+
+    _lastReloadTime = now;
+    _reloadAttempts++;
+    debugPrint(
+      '$title: no image for ${stalledFor.inSeconds}s, '
+      'reopening (attempt $_reloadAttempts)',
+    );
+    onReload?.call();
+    notifyListeners();
+  }
+
   void _onDurationUpdate(Duration duration) {
     if (duration > Duration.zero) {
-      _lastImageTime = DateTime.now();
-      _isImageOld = false;
-      error = null;
-      _oldImageTimer?.cancel();
-      _oldImageTimer = Timer.periodic(timerInterval, (timer) {
-        // If the image is still the same after the interval, then it's old.
-        _isImageOld = true;
-
-        if (lastImageUpdate != null) {
-          final difference = lastImageUpdate!.difference(DateTime.now());
-          if (difference > timerInterval * 3) {
-            // If the image is still the same after twice the interval, then
-            // it's probably stuck and we should reload the video.
-            onReload?.call();
-            timer.cancel();
-            notifyListeners();
-          }
-        }
-        notifyListeners();
-      });
+      _markImageFresh();
       _handleLateVideo();
       notifyListeners();
     }
@@ -293,8 +377,7 @@ abstract class UnityVideoPlayer with ChangeNotifier {
     this.error = error;
     notifyListeners();
 
-    debugPrint('==== VIDEO ERROR HAPPENED with $dataSource');
-    debugPrint('==== $error');
+    debugPrint('==== VIDEO ERROR HAPPENED in $title');
 
     // If the video is not supported, try to play the fallback url
     if (error == 'Failed to recognize file format.' &&
@@ -305,6 +388,7 @@ abstract class UnityVideoPlayer with ChangeNotifier {
   }
 
   void _onPositionUpdate(Duration position) {
+    if (position > Duration.zero) _markImageFresh();
     error = null;
     _handleLateVideo();
     notifyListeners();
@@ -410,10 +494,14 @@ abstract class UnityVideoPlayer with ChangeNotifier {
   /// Whether the media is seekable
   bool get isSeekable;
 
+  /// Opens [url]. Nothing happens when it is already the current source,
+  /// unless [force] is true - which reopens it (used to recover a stream
+  /// that stopped).
   Future<void> setDataSource(
     String url, {
     bool autoPlay = true,
     Map<String, String>? headers,
+    bool force = false,
   });
   Future<void> setMultipleDataSource(
     Iterable<String> url, {
@@ -464,11 +552,12 @@ abstract class UnityVideoPlayer with ChangeNotifier {
         _onErrorSubscription.cancel();
         _onPositionUpdateSubscription.cancel();
         _fpsSubscription.cancel();
-        _oldImageTimer?.cancel();
       } catch (error, stack) {
         debugPrint('Tried to cancel subscriptions but failed: $error, $stack');
       }
     }
+    _oldImageTimer?.cancel();
+    _oldImageTimer = null;
     _lastImageTime = null;
     _isImageOld = false;
 

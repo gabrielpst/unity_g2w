@@ -24,6 +24,7 @@ import 'package:bluecherry_client/models/device.dart';
 import 'package:bluecherry_client/models/event.dart';
 import 'package:bluecherry_client/providers/settings_provider.dart';
 import 'package:bluecherry_client/utils/logging.dart';
+import 'package:bluecherry_client/utils/sanitize.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:unity_video_player/unity_video_player.dart';
@@ -81,10 +82,13 @@ class UnityPlayers with ChangeNotifier {
     SettingsProvider settings() => SettingsProvider.instance;
     late UnityVideoPlayer controller;
 
-    Future<void> setSource() async {
+    // [force] reopens the stream even when the URL did not change. It is what
+    // the stall watchdog needs: an RTSP URL is always the same, so without
+    // it a "reload" of a frozen stream was silently ignored.
+    Future<void> setSource({bool force = false}) async {
       if (device.url != null) {
-        debugPrint('Initializing ${device.url}');
-        await controller.setDataSource(device.url!);
+        debugPrint('Initializing ${sanitizeSensitiveData(device.url ?? '')}');
+        await controller.setDataSource(device.url!, force: force);
       } else {
         var streamingType =
             device.preferredStreamingType ??
@@ -104,10 +108,11 @@ class UnityPlayers with ChangeNotifier {
           ),
           StreamingType.mjpeg => (device.mjpegURL, Future.value(device.hlsURL)),
         };
-        debugPrint('Initializing $source');
+        debugPrint('Initializing ${sanitizeSensitiveData(source)}');
         controller.fallbackUrl = fallback;
         await controller.setDataSource(
           source,
+          force: force,
           headers: {
             if (device.server.cookie != null)
               API.cookieHeader: device.server.cookie!,
@@ -128,7 +133,11 @@ class UnityPlayers with ChangeNotifier {
                     .playerQuality,
             onReload: () {
               if (settings().kReloadTimedOutStreams.value) {
-                setSource();
+                // The HLS playlist URL carries a session token: asking for
+                // the source again also renews it.
+                setSource(force: true).catchError((error, stack) {
+                  debugPrint('Failed to reload ${device.name}: $error');
+                });
               }
             },
             title: device.name,
@@ -212,6 +221,11 @@ class UnityPlayers with ChangeNotifier {
       for (final device in devices) {
         if (players.containsKey(device.uuid)) continue;
         players[device.uuid] = forDevice(device);
+        // Players are created progressively (see the delay below) and some
+        // callers do not await this method, so notify as each player becomes
+        // available. Otherwise tiles built before their player exists never
+        // rebuild and stay empty until a manual reload.
+        instance.notifyListeners();
         await Future.delayed(const Duration(milliseconds: 350));
       }
     });

@@ -61,7 +61,9 @@ class UnityPlayers with ChangeNotifier {
   /// Reloads all devices that are marked as reloadable.
   static Future<void> reloadDevices() async {
     if (_reloadable.isEmpty) return;
-    debugPrint('Reloading ${_reloadable.length} devices: $_reloadable');
+    // Never print the set itself: it holds stream URLs with credentials,
+    // and stdout goes to the system journal.
+    debugPrint('Reloading ${_reloadable.length} devices');
     for (final player in players.entries.where(
       (entry) => _reloadable.contains(entry.key),
     )) {

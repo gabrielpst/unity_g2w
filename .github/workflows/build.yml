@@ -12,6 +12,10 @@ on:
 permissions:
   contents: write
 
+# Runners are pinned too (ubuntu-24.04, not ubuntu-latest): when the latter
+# moved to 26.04 the Linux job stopped at apt (p7zip-rar no longer exists),
+# and the packages must be built against the libmpv the .deb depends on.
+#
 # One Flutter version for every job. With `channel: stable` alone each run
 # took whatever was current that day and builds broke without any change in
 # the code. Raise it on purpose, together with a test build.
@@ -21,7 +25,7 @@ env:
 jobs:
   build_android:
     name: G2W Monitor Android
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -301,7 +305,7 @@ jobs:
 
   build_linux:
     name: G2W Monitor Linux
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -461,7 +465,7 @@ jobs:
 
   build_pi:
     name: G2W Monitor Raspberry Pi
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -496,7 +500,7 @@ jobs:
 
   build_web:
     name: G2W Monitor Web
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4

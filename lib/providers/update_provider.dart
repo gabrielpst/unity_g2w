@@ -70,8 +70,8 @@ class UpdateVersion {
   static const descriptionField = 'description';
   static const publishedAtField = 'pubDate';
 
-  static const linuxDownloadFileName = 'bluecherry-linux-x86_64';
-  static const windowsDownloadFileName = 'bluecherry-windows-setup';
+  static const linuxDownloadFileName = 'g2w-monitor-linux-x86_64';
+  static const windowsDownloadFileName = 'g2w-monitor-windows-setup';
 }
 
 enum LinuxPlatform {
@@ -129,7 +129,10 @@ class UpdateManager extends UnityProvider {
     //   'The latest version can not be older than the current version',
     // );
 
-    return currentVersion != latestVersion;
+    // Only a newer version is an update. Comparing with `!=` offered the
+    // appcast version as an "update" to anyone running something newer than
+    // it (a test build, or a release published before the appcast).
+    return latestVersion > currentVersion;
   }
 
   List<UpdateVersion> versions = [];
@@ -339,7 +342,10 @@ class UpdateManager extends UnityProvider {
 
     final executablePath = Uri.https(
       'github.com',
-      '/bluecherrydvr/unity/releases/download/bleeding_edge/$fileName$extension',
+      // The installers of this fork. It used to point at the upstream
+      // Bluecherry release, which would have replaced G2W Monitor with the
+      // original client.
+      '/gabrielpst/unity_g2w/releases/download/bleeding_edge/$fileName$extension',
     );
 
     await Dio().downloadUri(
